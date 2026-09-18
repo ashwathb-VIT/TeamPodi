@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="description" content="PULSE — a static mental health tracker: daily mood check-ins, journaling, analytics and a GitHub proof-of-work panel. No backend, no build step.">
+  <title>PULSE — Mental Health Tracker</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230a0a0c'/%3E%3Cpath d='M5 17h5l3-7 5 14 3-7h6' fill='none' stroke='%23c9ff3d' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <!-- ===================================================================
+       Icon sprite. Simple line-style icons, referenced with <use href>.
+       Kept inline so the page works straight off the filesystem.
+       =================================================================== -->
+  <svg class="sprite" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+    <symbol id="i-pulse" viewBox="0 0 24 24"><path d="M2 12h4l3-7 5 14 3-7h5"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M4 12.5 9.5 18 20 6"/></symbol>
+    <symbol id="i-arrow-left" viewBox="0 0 24 24"><path d="M19 12H5m0 0 6-6m-6 6 6 6"/></symbol>
+    <symbol id="i-arrow-right" viewBox="0 0 24 24"><path d="M5 12h14m0 0-6-6m6 6-6 6"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="m20 20-4.5-4.5"/></symbol>
+    <symbol id="i-pencil" viewBox="0 0 24 24"><path d="M4 20h4L20 8l-4-4L4 16v4Z"/><path d="m14.5 5.5 4 4"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3m-9 0 1 13h10l1-13"/></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.6-5.9M20 4v5h-5"/></symbol>
+    <symbol id="i-star" viewBox="0 0 24 24"><path d="m12 3.5 2.6 5.5 6 .8-4.3 4.2 1 6-5.3-2.9-5.3 2.9 1-6L3.4 9.8l6-.8L12 3.5Z"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5.5l3.5 2"/></symbol>
+    <symbol id="i-flame" viewBox="0 0 24 24"><path d="M12 3s5 4.5 5 9a5 5 0 0 1-10 0c0-1.6.7-3 1.5-4 .2 1.4 1 2.3 2 2.3 1.5 0 2-1.6 1.5-3.3-.3-1.3-.7-2.6 0-4Z"/></symbol>
+    <symbol id="i-branch" viewBox="0 0 24 24"><circle cx="6.5" cy="5" r="2.5"/><circle cx="6.5" cy="19" r="2.5"/><circle cx="17.5" cy="8" r="2.5"/><path d="M6.5 7.5v9M17.5 10.5c0 4-5 3-11 6"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5V5.5Z"/><path d="M4 20.5A2.5 2.5 0 0 1 6.5 18H20v3H6.5A2.5 2.5 0 0 1 4 20.5Z"/></symbol>
+    <symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 4v16h16"/><path d="M8 16v-4m4 4V8m4 8v-6"/></symbol>
+    <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3A4 4 0 0 0 13 5.3l-1.5 1.5"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3A4 4 0 0 0 11 18.7l1.5-1.5"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+  </svg>
+
+  <!-- =============================== HEADER =============================== -->
+  <header class="site-header">
+    <div class="brand">
+      <span class="brand__mark"><svg class="icon" aria-hidden="true"><use href="#i-pulse"></use></svg></span>
+      <span class="brand__text">
+        <span class="brand__name">PULSE</span>
+        <span class="brand__tag">Mental health tracker &amp; improvement log</span>
+      </span>
+    </div>
+    <div class="header-meta">
+      <p class="meta-chip">
+        <span class="meta-chip__label">Streak</span>
+        <span class="meta-chip__value" data-header-streak>0</span>
+        <span class="meta-chip__unit">days</span>
+      </p>
+      <p class="meta-chip">
+        <span class="meta-chip__label">Today</span>
+        <span class="meta-chip__value meta-chip__value--sm" data-header-date>—</span>
+      </p>
+    </div>
+  </header>
+
+  <!-- ===================== STEP NAVIGATION (flowchart) ===================== -->
+  <nav class="stepnav" aria-label="Sections">
+    <div class="stepnav__list" role="tablist" aria-label="Sections" data-tablist>
+      <button class="tab" type="button" role="tab" id="tab-checkin" data-tab="checkin"
+              aria-controls="panel-checkin" aria-selected="true">
+        <span class="tab__num">01</span>
+        <span class="tab__label">Check-in</span>
+      </button>
+      <span class="stepnav__link" aria-hidden="true"></span>
+      <button class="tab" type="button" role="tab" id="tab-journal" data-tab="journal"
+              aria-controls="panel-journal" aria-selected="false" tabindex="-1">
+        <span class="tab__num">02</span>
+        <span class="tab__label">Journal</span>
+      </button>
+      <span class="stepnav__link" aria-hidden="true"></span>
+      <button class="tab" type="button" role="tab" id="tab-insights" data-tab="insights"
+              aria-controls="panel-insights" aria-selected="false" tabindex="-1">
+        <span class="tab__num">03</span>
+        <span class="tab__label">Insights</span>
+      </button>
+      <span class="stepnav__link" aria-hidden="true"></span>
+      <button class="tab" type="button" role="tab" id="tab-proof" data-tab="proof"
+              aria-controls="panel-proof" aria-selected="false" tabindex="-1">
+        <span class="tab__num">04</span>
+        <span class="tab__label">Proof of work</span>
+      </button>
+    </div>
+  </nav>
+
+  <main id="main">
+
+    <!-- ============================ 01 CHECK-IN ============================ -->
+    <section class="panel" id="panel-checkin" data-panel="checkin" data-accent="lime"
+             role="tabpanel" aria-labelledby="tab-checkin" tabindex="-1">
+      <div class="panel__head">
+        <p class="eyebrow">Step 01 — Daily</p>
+        <h1 class="panel__title">How are you<br>today?</h1>
+        <p class="panel__sub">One check-in a day. Twenty seconds of honesty builds the record every other screen is drawn from.</p>
+      </div>
+
+      <div class="card">
+        <div class="card__head">
+          <h2 class="card__title">Mood</h2>
+          <p class="card__hint" data-checkin-date>—</p>
+        </div>
+        <div class="mood-scale" role="radiogroup" aria-label="Mood rating, 1 to 5" data-mood-scale></div>
+      </div>
+
+      <div class="card">
+        <div class="card__head">
+          <h2 class="card__title">Context tags</h2>
+          <p class="card__hint">Optional — what shaped the day?</p>
+        </div>
+        <div class="chips" data-tag-list></div>
+      </div>
+
+      <div class="card">
+        <div class="card__head">
+          <h2 class="card__title">Journal</h2>
+          <p class="card__hint"><span data-note-count>0</span> characters</p>
+        </div>
+        <label class="sr-only" for="note-input">Journal entry for today</label>
+        <textarea id="note-input" class="textarea" rows="7" data-note
+                  placeholder="What happened today? What helped, what drained you, what would you repeat?"></textarea>
+      </div>
+
+      <div class="panel__actions">
+        <p class="save-state" data-save-state>Nothing logged for today yet.</p>
+        <div class="action-group">
+          <button class="btn btn--ghost" type="button" data-checkin-reset>Reset form</button>
+          <button class="btn btn--primary" type="button" data-checkin-save>
+            <span>Save check-in</span>
+            <svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="pager" data-pager></div>
+    </section>
+
+    <!-- ============================ 02 JOURNAL ============================= -->
+    <section class="panel" id="panel-journal" data-panel="journal" data-accent="lavender"
+             role="tabpanel" aria-labelledby="tab-journal" tabindex="-1" hidden>
+      <div class="panel__head">
+        <p class="eyebrow">Step 02 — History</p>
+        <h1 class="panel__title">Everything<br>you wrote.</h1>
+        <p class="panel__sub">Search the record by word, date or tag. Edit an entry when memory sharpens, delete it when it does not serve you.</p>
+      </div>
+
+      <div class="card">
+        <div class="card__head">
+          <h2 class="card__title">Filters</h2>
+          <p class="card__hint"><span data-journal-count>0</span> entries shown</p>
+        </div>
+        <div class="filters">
+          <p class="field field--grow">
+            <label class="field__label" for="journal-search">Search text</label>
+            <span class="input-wrap">
+              <svg class="icon input-wrap__icon" aria-hidden="true"><use href="#i-search"></use></svg>
+              <input class="input input--with-icon" id="journal-search" type="search"
+                     placeholder="Word in a journal entry…" data-journal-search>
+            </span>
+          </p>
+          <p class="field">
+            <label class="field__label" for="journal-tag">Tag</label>
+            <select class="input" id="journal-tag" data-journal-tag>
+              <option value="">All tags</option>
+            </select>
+          </p>
+          <p class="field">
+            <label class="field__label" for="journal-from">From</label>
+            <input class="input" id="journal-from" type="date" data-journal-from>
+          </p>
+          <p class="field">
+            <label class="field__label" for="journal-to">To</label>
+            <input class="input" id="journal-to" type="date" data-journal-to>
+          </p>
+          <p class="field field--action">
+            <button class="btn btn--ghost" type="button" data-journal-clear>Clear</button>
+          </p>
+        </div>
+      </div>
+
+      <div class="entry-list" data-journal-list></div>
+
+      <div class="pager" data-pager></div>
+    </section>
+
+    <!-- ============================ 03 INSIGHTS =========================== -->
+    <section class="panel" id="panel-insights" data-panel="insights" data-accent="red"
+             role="tabpanel" aria-labelledby="tab-insights" tabindex="-1" hidden>
+      <div class="panel__head">
+        <p class="eyebrow">Step 03 — Analytics</p>
+        <h1 class="panel__title">The shape<br>of the month.</h1>
+        <p class="panel__sub">Trends, streaks and the tags that keep showing up. Nothing leaves your browser.</p>
+      </div>
+
+      <div class="stat-grid" data-stat-grid></div>
+
+      <div class="card">
+        <div class="card__head">
+          <h2 class="card__title">Mood trend</h2>
+          <div class="segmented" role="group" aria-label="Chart range" data-range-group>
+            <button class="segmented__btn is-active" type="button" data-range="7">7D</button>
+            <button class="segmented__btn" type="button" data-range="30">30D</button>
+            <button class="segmented__btn" type="button" data-range="90">90D</button>
+          </div>
+        </div>
+        <div class="chart" data-trend-chart></div>
+        <p class="card__foot" data-trend-caption>—</p>
+      </div>
+
+      <div class="card">
+        <div class="card__head">
+          <h2 class="card__title">Most common tags</h2>
+          <p class="card__hint">Across the selected range</p>
+        </div>
+        <div class="chart" data-tag-chart></div>
+      </div>
+
+      <div class="pager" data-pager></div>
+    </section>
+
+    <!-- ========================= 04 PROOF OF WORK ========================== -->
+    <section class="panel" id="panel-proof" data-panel="proof" data-accent="pink"
+             role="tabpanel" aria-labelledby="tab-proof" tabindex="-1" hidden>
+      <div class="panel__head">
+        <p class="eyebrow">Step 04 — GitHub</p>
+        <h1 class="panel__title">Proof<br>of work.</h1>
+        <p class="panel__sub">Point this at a public repo. Live commits and repo stats, pulled straight from the GitHub REST API.</p>
+      </div>
+
+      <div class="card">
+        <div class="card__head">
+          <h2 class="card__title">Repository</h2>
+          <p class="card__hint">Stored locally, editable anytime</p>
+        </div>
+        <form class="filters" data-gh-form>
+          <p class="field field--grow">
+            <label class="field__label" for="gh-user">GitHub username</label>
+            <input class="input" id="gh-user" type="text" placeholder="octocat"
+                   autocomplete="off" spellcheck="false" data-gh-user>
+          </p>
+          <p class="field field--grow">
+            <label class="field__label" for="gh-repo">Repository name</label>
+            <input class="input" id="gh-repo" type="text" placeholder="hello-world"
+                   autocomplete="off" spellcheck="false" data-gh-repo>
+          </p>
+          <p class="field field--action">
+            <button class="btn btn--primary" type="submit">
+              <span>Load</span>
+              <svg class="icon" aria-hidden="true"><use href="#i-branch"></use></svg>
+            </button>
+          </p>
+          <p class="field field--action">
+            <button class="btn btn--ghost" type="button" data-gh-refresh>
+              <svg class="icon" aria-hidden="true"><use href="#i-refresh"></use></svg>
+              <span>Refresh</span>
+            </button>
+          </p>
+        </form>
+        <p class="status" role="status" aria-live="polite" data-gh-status>No repository configured yet.</p>
+      </div>
+
+      <div class="stat-grid" data-gh-stats hidden></div>
+
+      <div class="card" data-gh-commits-card hidden>
+        <div class="card__head">
+          <h2 class="card__title">Recent commits</h2>
+          <p class="card__hint" data-gh-commits-hint>—</p>
+        </div>
+        <ul class="commit-list" data-gh-commits></ul>
+      </div>
+
+      <div class="pager" data-pager></div>
+    </section>
+
+  </main>
+
+  <footer class="site-footer">
+    <p class="site-footer__note">All data lives in this browser's localStorage. Clearing site data wipes it — export by copying your journal entries somewhere safe.</p>
+    <p class="site-footer__meta"><span data-footer-entries>0</span> entries stored</p>
+  </footer>
+
+  <div class="toast" role="status" aria-live="polite" data-toast hidden></div>
+
+  <!-- Plain classic scripts, loaded in dependency order, so the page also
+       works when opened directly from the filesystem (no module/CORS needs). -->
+  <script src="js/store.js" defer></script>
+  <script src="js/charts.js" defer></script>
+  <script src="js/mood.js" defer></script>
+  <script src="js/journal.js" defer></script>
+  <script src="js/insights.js" defer></script>
+  <script src="js/github.js" defer></script>
+  <script src="js/app.js" defer></script>
+</body>
+</html>
